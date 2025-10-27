@@ -12,7 +12,11 @@ import {
   Shield,
   AlertCircle,
 } from "lucide-react";
-import { createEncryptedInput, publicDecrypt } from "../lib/fhevm";
+import {
+  createEncryptedInput,
+  decryptValue,
+  publicDecrypt,
+} from "../lib/fhevm";
 
 const VAULT_CONTRACT_ADDRESS = "0x8FD3f2fd65579f4812C2511623d3E7dfd817064E";
 const VAULT_CONTRACT_ABI = [
@@ -448,10 +452,11 @@ export default function SecretVaultUI({ account, isConnected }) {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         VAULT_CONTRACT_ADDRESS,
         VAULT_CONTRACT_ABI,
-        provider
+        signer
       );
 
       // Get all active secret IDs
@@ -478,7 +483,7 @@ export default function SecretVaultUI({ account, isConnected }) {
           console.error(`Error loading secret ${id}:`, error);
         }
       }
-
+      console.log("Loaded secrets:", result);
       setSecrets(result);
       showMessage(
         result.length > 0
@@ -500,9 +505,9 @@ export default function SecretVaultUI({ account, isConnected }) {
       showMessage("⚠️ Please fill in both fields", "warning");
       return;
     }
+    showMessage("🔐 Encrypting and storing secret...", "info");
 
     setIsStoring(true);
-    showMessage("🔐 Encrypting and storing secret...", "info");
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -534,13 +539,11 @@ export default function SecretVaultUI({ account, isConnected }) {
       );
       await tx.wait();
 
-      showMessage("✅ Secret stored successfully!", "success");
+      showMessage(`✅ Secret stored successfully!", success ${tx.hash}`);
       setNewSecretValue("");
       setNewSecretLabel("");
 
       // Reload everything
-      await loadContractData();
-      await loadAllSecrets();
     } catch (error) {
       console.error("Error storing secret:", error);
       showMessage("❌ Failed to store secret: " + error.message, "error");
@@ -586,11 +589,11 @@ export default function SecretVaultUI({ account, isConnected }) {
       );
       await tx.wait();
 
-      showMessage("✅ Secret updated successfully!", "success");
+      showMessage(
+        `✅ Secret updated successfully!", "success",https://sepolia.etherscan.io/tx/${tx.hash}`
+      );
       setUpdateSecretId("");
       setUpdateSecretValue("");
-
-      await loadAllSecrets();
     } catch (error) {
       console.error("Error updating secret:", error);
       showMessage("❌ Failed to update secret: " + error.message, "error");
@@ -611,15 +614,18 @@ export default function SecretVaultUI({ account, isConnected }) {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
+
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         VAULT_CONTRACT_ADDRESS,
         VAULT_CONTRACT_ABI,
-        provider
+        signer
       );
 
       // Check if secret exists first
       const exists = await contract.secretExistsForUser(parseInt(viewSecretId));
 
+      console.log(`Secret #${viewSecretId} exists:`, exists);
       if (!exists) {
         showMessage(`❌ Secret #${viewSecretId} does not exist`, "error");
         setViewSecretData(null);
@@ -658,15 +664,21 @@ export default function SecretVaultUI({ account, isConnected }) {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
+
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         VAULT_CONTRACT_ADDRESS,
         VAULT_CONTRACT_ABI,
-        provider
+        signer
       );
 
       const encryptedData = await contract.getSecret(viewSecretData.id);
-      const decrypted = await publicDecrypt(encryptedData);
-
+      // 2️⃣ Use private decryption via user signature (EIP-712)
+      const decrypted = await decryptValue(
+        encryptedData,
+        VAULT_CONTRACT_ADDRESS,
+        signer
+      );
       setViewSecretData((prev) => ({ ...prev, decryptedValue: decrypted }));
       showMessage(`✅ Secret #${viewSecretData.id} decrypted`, "success");
     } catch (error) {
@@ -684,15 +696,21 @@ export default function SecretVaultUI({ account, isConnected }) {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
+
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         VAULT_CONTRACT_ADDRESS,
         VAULT_CONTRACT_ABI,
-        provider
+        signer
       );
 
       const encryptedData = await contract.getSecret(id);
-      const decrypted = await publicDecrypt(encryptedData);
-
+      // 2️⃣ Use private decryption via user signature (EIP-712)
+      const decrypted = await decryptValue(
+        encryptedData,
+        VAULT_CONTRACT_ADDRESS,
+        signer
+      );
       setSecrets((prev) =>
         prev.map((s) => (s.id === id ? { ...s, decryptedValue: decrypted } : s))
       );
@@ -735,11 +753,10 @@ export default function SecretVaultUI({ account, isConnected }) {
       const tx = await contract.deleteSecret(parseInt(deleteSecretId));
       await tx.wait();
 
-      showMessage("✅ Secret deleted successfully", "success");
+      showMessage(
+        `✅ Secret updated successfully!", "success",https://sepolia.etherscan.io/tx/${tx.hash}`
+      );
       setDeleteSecretId("");
-
-      await loadContractData();
-      await loadAllSecrets();
     } catch (error) {
       console.error("Error deleting secret:", error);
       showMessage("❌ Failed to delete secret: " + error.message, "error");
@@ -790,10 +807,11 @@ export default function SecretVaultUI({ account, isConnected }) {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         VAULT_CONTRACT_ADDRESS,
         VAULT_CONTRACT_ABI,
-        provider
+        signer
       );
 
       const exists = await contract.secretExistsForUser(

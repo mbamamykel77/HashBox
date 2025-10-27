@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import { initializeFheInstance, publicDecrypt } from "./lib/fhevm";
-
 import SecretVaultUI from "./components/secretvault";
-
 import "./App.css";
 
-// Contract configuration
 const CONTRACT_ADDRESSES = {
   31337: "0x40e8Aa088739445BC3a3727A724F56508899f65B", // Local Hardhat
   11155111: "0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e", // Sepolia
