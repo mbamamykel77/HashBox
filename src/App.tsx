@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import { initializeFheInstance, publicDecrypt } from "./lib/fhevm";
-import FheCounter from "./components/FheCounter";
-import FheRatings from "./components/FheRatings";
-import FheVoting from "./components/FheVoting";
+
 import SecretVaultUI from "./components/secretvault";
 
 import "./App.css";
