@@ -6,6 +6,10 @@ A decentralized application for storing encrypted secrets on-chain using Fully H
 
 FHE Secret Vault is a privacy-preserving vault that allows users to store sensitive information (PINs, passwords, recovery codes) on the Ethereum blockchain while keeping them completely encrypted. Using Fully Homomorphic Encryption from Zama's FHEVM, secrets remain encrypted on-chain and can only be decrypted by their owner.
 
+watch the video. here
+
+- [watch the video](https://www.loom.com/share/9717c223ce8b4f5aa1d0df6053d92db0)
+
 ### Key Features
 
 - ✅ **End-to-End Encryption**: Secrets encrypted client-side before blockchain storage
@@ -31,6 +35,7 @@ FHE Secret Vault is a privacy-preserving vault that allows users to store sensit
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
 - [License](#license)
+- [watch the video](https://www.loom.com/share/9717c223ce8b4f5aa1d0df6053d92db0)
 
 ## 🏗️ Architecture
 
@@ -761,6 +766,7 @@ This project is licensed under the **BSD-3-Clause-Clear** License - see the [LIC
 ### Get Testnet ETH
 
 - [Sepolia Faucet](https://sepoliafaucet.com)
+
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com)
 - [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
 
